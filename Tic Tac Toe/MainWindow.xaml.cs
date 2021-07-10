@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,6 +27,10 @@ namespace Tic_Tac_Toe
         /// True if the game has ended
         /// </summary>
         private bool mGameEnded;
+        /// <summary>
+        /// True if the computer is the second player
+        /// </summary>
+        private bool p2IsComputer;
         #endregion
 
         #region constructor
@@ -35,6 +40,10 @@ namespace Tic_Tac_Toe
         public MainWindow()
         {
             InitializeComponent();
+
+            //make sure the game starts p1 vs p2
+            p2IsComputer = false;
+            btnP1vP2.IsChecked = true;
 
             NewGame();
         }
@@ -66,6 +75,7 @@ namespace Tic_Tac_Toe
             // Make sure game hasn't finished
             mGameEnded = false;
 
+
         }
         /// <summary>
         /// Handles a button click event
@@ -74,6 +84,7 @@ namespace Tic_Tac_Toe
         /// <param name="e">The event of the click</param>
         private void BtnClick(object sender, RoutedEventArgs e)
         {
+
             //start a new game on the click after it finished 
             if (mGameEnded)
             {
@@ -83,6 +94,19 @@ namespace Tic_Tac_Toe
             //Cast the sender into a button
             var btn = (Button)sender;
 
+            doTheClick(btn);
+
+            if (!mP1Turn && p2IsComputer)
+            {
+                //find the button that should be written
+                btn = findButton(computerTurn());
+                doTheClick(btn);
+            }
+
+        }
+
+        private void doTheClick(Button btn)
+        {
             //get col and row number
             var column = Grid.GetColumn(btn);
             var row = Grid.GetRow(btn);
@@ -99,23 +123,56 @@ namespace Tic_Tac_Toe
 
             //set button text
             btn.Content = (mP1Turn) ? "X" : "O";
-            
+
             //set nought color to green
             if (!mP1Turn) btn.Foreground = Brushes.Green;
-
             //Toggle the players turns
             mP1Turn = !mP1Turn;
 
             //check for a winner
             checkForWinner();
         }
+
+        private Button findButton(int idx)
+        {
+            List<Button> listBtns = new List<Button>(){
+                btn00,btn01,btn02,
+                btn10,btn11,btn12,
+                btn20,btn21,btn22
+            };
+
+            return listBtns[idx];
+        }
+
+        /// <summary>
+        /// Simulates the computer turn
+        /// </summary>
+        /// <returns>index of button that computer choses</returns>
+        private int computerTurn()
+        {
+            HashSet<int> possibleCells = new HashSet<int>();
+            //int[] possibleCells = new int[mResults.Length - 1];
+            for (int i = 0; i < mResults.Length; i++)
+            {
+                if (mResults[i] == MarkType.Free)
+                {
+                    possibleCells.Add(i);
+                }
+            }
+            //chose a random free cell
+            Random randomIndex = new Random();
+            int idx = randomIndex.Next(possibleCells.Min(), possibleCells.Max());
+            return idx;
+
+        }
+
         /// <summary>
         /// Checks if there is a winner of a 3 line straight
         /// </summary>
         private void checkForWinner()
         {
             //check for horizontal wins
-            if(mResults[0] != MarkType.Free && (mResults[0]& mResults[1]& mResults[2]) == mResults[0])
+            if (mResults[0] != MarkType.Free && (mResults[0] & mResults[1] & mResults[2]) == mResults[0])
             {
                 //End Game
                 mGameEnded = true;
@@ -191,5 +248,38 @@ namespace Tic_Tac_Toe
             }
         }
 
+        /// <summary>
+        /// Handles the click of the MenuItem "1 vs 1"
+        /// </summary>
+        /// <param name="sender">MenuItem</param>
+        /// <param name="e">The event of the click</param>
+        private void p1vp2Click(object sender, RoutedEventArgs e)
+        {
+            p2IsComputer = btnP1vComp.IsChecked = false;
+            btnP1vP2.IsChecked = true;
+            NewGame();
+        }
+
+        /// <summary>
+        /// Handles the click of the MenuItem "1 vs Computer"
+        /// </summary>
+        /// <param name="sender">MenuItem</param>
+        /// <param name="e">The event of the click</param>
+        private void p1vcompClick(object sender, RoutedEventArgs e)
+        {
+            p2IsComputer = btnP1vComp.IsChecked = true;
+            btnP1vP2.IsChecked = false;
+            NewGame();
+        }
+
+        /// <summary>
+        /// Starts a new Game
+        /// </summary>
+        /// <param name="sender">MenuItem</param>
+        /// <param name="e">The event of the click</param>
+        private void newGameClick(object sender, RoutedEventArgs e)
+        {
+            NewGame();
+        }
     }
 }
