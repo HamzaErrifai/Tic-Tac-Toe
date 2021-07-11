@@ -31,6 +31,9 @@ namespace Tic_Tac_Toe
         /// True if the computer is the second player
         /// </summary>
         private bool p2IsComputer;
+
+
+        private Dictionary<string, int> Scores = new Dictionary<string, int>();
         #endregion
 
         #region constructor
@@ -41,9 +44,15 @@ namespace Tic_Tac_Toe
         {
             InitializeComponent();
 
-            //make sure the game starts p1 vs p2
+            //make sure the game starts p1 vs computer
             p2IsComputer = false;
             btnP1vP2.IsChecked = true;
+
+            //set the apropriate scores
+            Scores["Tie"] = 0;
+            Scores["Cross"] = -1;
+            Scores["Nought"] = 1;
+
 
             NewGame();
         }
@@ -96,11 +105,12 @@ namespace Tic_Tac_Toe
 
             doTheClick(btn);
 
-            if (!mP1Turn && p2IsComputer)
+            if (!mGameEnded && !mP1Turn && p2IsComputer)
             {
-                //find the button that should be written
-                btn = findButton(computerTurn());
+
+                btn = findButton(bestMove());
                 doTheClick(btn);
+
             }
 
         }
@@ -132,120 +142,210 @@ namespace Tic_Tac_Toe
             //check for a winner
             checkForWinner();
         }
-
+        /// <summary>
+        /// finds the button based on the index
+        /// </summary>
+        /// <param name="idx"></param>
+        /// <returns>Button</returns>
         private Button findButton(int idx)
         {
             List<Button> listBtns = new List<Button>(){
-                btn00,btn01,btn02,
-                btn10,btn11,btn12,
-                btn20,btn21,btn22
+                btn00,btn10,btn20,
+                btn01,btn11,btn21,
+                btn02,btn12,btn22
             };
-
-            return listBtns[idx];
+            if (idx > -1)
+                return listBtns[idx];
+            else
+                throw new Exception("The index is not valid!!");
         }
 
+
         /// <summary>
-        /// Simulates the computer turn
+        /// returns the index of the best place to make the move
         /// </summary>
-        /// <returns>index of button that computer choses</returns>
-        private int computerTurn()
+        /// <returns>index of the button (int)</returns>
+        private int bestMove()
         {
-            HashSet<int> possibleCells = new HashSet<int>();
-            //int[] possibleCells = new int[mResults.Length - 1];
+            double bestScore = double.NegativeInfinity;
+            int bestChoice = -1;
+
             for (int i = 0; i < mResults.Length; i++)
             {
                 if (mResults[i] == MarkType.Free)
                 {
-                    possibleCells.Add(i);
+                    mResults[i] = MarkType.Nought;
+                    double score = minimax(mResults, 0, false);
+                    mResults[i] = MarkType.Free;
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestChoice = i;
+                    }
                 }
             }
-            //chose a random free cell
-            Random randomIndex = new Random();
-            int idx = randomIndex.Next(possibleCells.Min(), possibleCells.Max());
-            return idx;
+            return bestChoice;
 
+        }
+
+
+        private double minimax(MarkType[] board, int depth, bool isMaximazing)
+        {
+            double bestScore;
+            var result = checkForWinner(false);
+            if (result != null)
+            {
+                return Scores[result];
+            }
+            if (isMaximazing)
+            {
+                bestScore = double.NegativeInfinity;
+                for (int i = 0; i < mResults.Length; i++)
+                {
+                    if (mResults[i] == MarkType.Free)
+                    {
+                        mResults[i] = MarkType.Nought;
+                        double score = minimax(mResults, depth + 1, false);
+                        mResults[i] = MarkType.Free;
+                        bestScore = Math.Max(score, bestScore);
+                    }
+                }
+            }
+            else
+            {
+                bestScore = double.PositiveInfinity;
+                for (int i = 0; i < mResults.Length; i++)
+                {
+                    if (mResults[i] == MarkType.Free)
+                    {
+                        mResults[i] = MarkType.Nought;
+                        double score = minimax(mResults, depth + 1, true);
+                        mResults[i] = MarkType.Free;
+                        bestScore = Math.Min(score, bestScore);
+                    }
+                }
+            }
+            return bestScore;
         }
 
         /// <summary>
         /// Checks if there is a winner of a 3 line straight
         /// </summary>
-        private void checkForWinner()
+        /// <param name="doFinish">True if you want to finish the game if there is a winner</param>
+        /// <returns>string or null</returns>
+        private string checkForWinner(bool doFinish = true)
         {
+            string result = null;
             //check for horizontal wins
             if (mResults[0] != MarkType.Free && (mResults[0] & mResults[1] & mResults[2]) == mResults[0])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn00.Background = btn10.Background = btn20.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn00.Background = btn10.Background = btn20.Background = Brushes.Yellow;
+                }
+                result = mResults[0].ToString();
             }
             if (mResults[3] != MarkType.Free && (mResults[3] & mResults[4] & mResults[5]) == mResults[3])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn01.Background = btn11.Background = btn21.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn01.Background = btn11.Background = btn21.Background = Brushes.Yellow;
+                }
+                result = mResults[3].ToString();
             }
             if (mResults[6] != MarkType.Free && (mResults[6] & mResults[7] & mResults[8]) == mResults[6])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn02.Background = btn12.Background = btn22.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn02.Background = btn12.Background = btn22.Background = Brushes.Yellow;
+                }
+                result = mResults[6].ToString();
             }
 
             //check for vertical wins
             if (mResults[0] != MarkType.Free && (mResults[0] & mResults[3] & mResults[6]) == mResults[0])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn00.Background = btn01.Background = btn02.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn00.Background = btn01.Background = btn02.Background = Brushes.Yellow;
+                }
+                result = mResults[0].ToString();
             }
             if (mResults[1] != MarkType.Free && (mResults[1] & mResults[4] & mResults[7]) == mResults[1])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn10.Background = btn11.Background = btn12.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn10.Background = btn11.Background = btn12.Background = Brushes.Yellow;
+                }
+                result = mResults[1].ToString();
             }
             if (mResults[2] != MarkType.Free && (mResults[2] & mResults[5] & mResults[8]) == mResults[2])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn20.Background = btn21.Background = btn22.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn20.Background = btn21.Background = btn22.Background = Brushes.Yellow;
+                }
+                result = mResults[2].ToString();
             }
 
             //check for diagonal wins
             if (mResults[0] != MarkType.Free && (mResults[0] & mResults[4] & mResults[8]) == mResults[0])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-                btn00.Background = btn11.Background = btn22.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn00.Background = btn11.Background = btn22.Background = Brushes.Yellow;
+                }
+                result = mResults[0].ToString();
             }
             if (mResults[6] != MarkType.Free && (mResults[6] & mResults[4] & mResults[2]) == mResults[6])
             {
                 //End Game
-                mGameEnded = true;
-                //highlight btns
-
-                btn02.Background = btn11.Background = btn20.Background = Brushes.Yellow;
+                if (doFinish)
+                {
+                    mGameEnded = true;
+                    //highlight btns
+                    btn02.Background = btn11.Background = btn20.Background = Brushes.Yellow;
+                }
+                result = mResults[6].ToString();
             }
 
             //check for tie
             if (!mResults.Any(c => c == MarkType.Free))
             {
                 //End Game
-                mGameEnded = true;
-                //highlight all buttons
-                Container.Children.Cast<Button>().ToList().ForEach(btn =>
+                if (doFinish)
                 {
-                    btn.Background = Brushes.Gray;
-
-                });
+                    mGameEnded = true;
+                    //highlight all buttons
+                    Container.Children.Cast<Button>().ToList().ForEach(btn =>
+                    {
+                        btn.Background = Brushes.Gray;
+                    });
+                }
+                result = "Tie";
             }
+            return result;
         }
 
         /// <summary>
@@ -267,7 +367,9 @@ namespace Tic_Tac_Toe
         /// <param name="e">The event of the click</param>
         private void p1vcompClick(object sender, RoutedEventArgs e)
         {
+            //check the menuItem "1 vs computer"
             p2IsComputer = btnP1vComp.IsChecked = true;
+            //make sure the menuItem "1 vs 1" is not checked
             btnP1vP2.IsChecked = false;
             NewGame();
         }
