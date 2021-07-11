@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Tic_Tac_Toe"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="MainWindow" Height="500" Width="500">
+        Title="MainWindow" Height="500" Width="500" Icon="icons8-tic-tac-toe-80.png">
 
     <Window.Resources>
         <Style TargetType="Button">
@@ -33,6 +33,7 @@
                 <MenuItem x:Name="btnP1vP2" Header="_1 vs 1" IsCheckable="true" Click="p1vp2Click" />
                 <MenuItem x:Name="btnP1vComp" Header="_1 vs Computer" IsCheckable="true" Click="p1vcompClick" />
             </MenuItem>
+            <MenuItem x:Name="lblResult"  Header="Result"/>
         </Menu>
         <Grid x:Name="Container" Grid.Column="0" Grid.Row="1">
 
@@ -49,8 +50,8 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Button x:Name="btn00" Click="BtnClick" Grid.Column="0" Grid.Row="0" Content="X"/>
-            <Button x:Name="btn10" Click="BtnClick" Grid.Column="1" Grid.Row="0" Content="O"/>
+            <Button x:Name="btn00" Click="BtnClick" Grid.Column="0" Grid.Row="0" Content="X" Foreground="Red"/>
+            <Button x:Name="btn10" Click="BtnClick" Grid.Column="1" Grid.Row="0" Content="O" Foreground="Green"/>
             <Button x:Name="btn20" Click="BtnClick" Grid.Column="2" Grid.Row="0"/>
 
             <Button x:Name="btn01" Click="BtnClick" Grid.Column="0" Grid.Row="1"/>

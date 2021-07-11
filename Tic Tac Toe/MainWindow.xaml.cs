@@ -53,7 +53,6 @@ namespace Tic_Tac_Toe
             Scores["Cross"] = -1;
             Scores["Nought"] = 1;
 
-
             NewGame();
         }
         #endregion
@@ -83,6 +82,9 @@ namespace Tic_Tac_Toe
 
             // Make sure game hasn't finished
             mGameEnded = false;
+
+            //Make sure there is no winner
+            lblResult.Header = "";
 
 
         }
@@ -188,44 +190,50 @@ namespace Tic_Tac_Toe
 
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="board"></param>
+        /// <param name="depth"></param>
+        /// <param name="isMaximazing"></param>
+        /// <returns></returns>
         private double minimax(MarkType[] board, int depth, bool isMaximazing)
         {
-            double bestScore;
-            var result = checkForWinner(false);
+            string result = checkForWinner(false);
             if (result != null)
             {
                 return Scores[result];
             }
             if (isMaximazing)
             {
-                bestScore = double.NegativeInfinity;
-                for (int i = 0; i < mResults.Length; i++)
+                double bestScore = double.NegativeInfinity;
+                for (int i = 0; i < board.Length; i++)
                 {
-                    if (mResults[i] == MarkType.Free)
+                    if (board[i] == MarkType.Free)
                     {
-                        mResults[i] = MarkType.Nought;
-                        double score = minimax(mResults, depth + 1, false);
-                        mResults[i] = MarkType.Free;
+                        board[i] = MarkType.Nought;
+                        double score = minimax(board, depth + 1, false);
+                        board[i] = MarkType.Free;
                         bestScore = Math.Max(score, bestScore);
                     }
                 }
+                return bestScore;
             }
             else
             {
-                bestScore = double.PositiveInfinity;
-                for (int i = 0; i < mResults.Length; i++)
+                double bestScore = double.PositiveInfinity;
+                for (int i = 0; i < board.Length; i++)
                 {
-                    if (mResults[i] == MarkType.Free)
+                    if (board[i] == MarkType.Free)
                     {
-                        mResults[i] = MarkType.Nought;
-                        double score = minimax(mResults, depth + 1, true);
-                        mResults[i] = MarkType.Free;
+                        board[i] = MarkType.Nought;
+                        double score = minimax(board, depth + 1, true);
+                        board[i] = MarkType.Free;
                         bestScore = Math.Min(score, bestScore);
                     }
                 }
+                return bestScore;
             }
-            return bestScore;
         }
 
         /// <summary>
@@ -248,7 +256,7 @@ namespace Tic_Tac_Toe
                 }
                 result = mResults[0].ToString();
             }
-            if (mResults[3] != MarkType.Free && (mResults[3] & mResults[4] & mResults[5]) == mResults[3])
+            else if (mResults[3] != MarkType.Free && (mResults[3] & mResults[4] & mResults[5]) == mResults[3])
             {
                 //End Game
                 if (doFinish)
@@ -259,7 +267,7 @@ namespace Tic_Tac_Toe
                 }
                 result = mResults[3].ToString();
             }
-            if (mResults[6] != MarkType.Free && (mResults[6] & mResults[7] & mResults[8]) == mResults[6])
+            else if (mResults[6] != MarkType.Free && (mResults[6] & mResults[7] & mResults[8]) == mResults[6])
             {
                 //End Game
                 if (doFinish)
@@ -272,7 +280,7 @@ namespace Tic_Tac_Toe
             }
 
             //check for vertical wins
-            if (mResults[0] != MarkType.Free && (mResults[0] & mResults[3] & mResults[6]) == mResults[0])
+            else if (mResults[0] != MarkType.Free && (mResults[0] & mResults[3] & mResults[6]) == mResults[0])
             {
                 //End Game
                 if (doFinish)
@@ -283,7 +291,7 @@ namespace Tic_Tac_Toe
                 }
                 result = mResults[0].ToString();
             }
-            if (mResults[1] != MarkType.Free && (mResults[1] & mResults[4] & mResults[7]) == mResults[1])
+            else if (mResults[1] != MarkType.Free && (mResults[1] & mResults[4] & mResults[7]) == mResults[1])
             {
                 //End Game
                 if (doFinish)
@@ -294,7 +302,7 @@ namespace Tic_Tac_Toe
                 }
                 result = mResults[1].ToString();
             }
-            if (mResults[2] != MarkType.Free && (mResults[2] & mResults[5] & mResults[8]) == mResults[2])
+            else if (mResults[2] != MarkType.Free && (mResults[2] & mResults[5] & mResults[8]) == mResults[2])
             {
                 //End Game
                 if (doFinish)
@@ -307,7 +315,7 @@ namespace Tic_Tac_Toe
             }
 
             //check for diagonal wins
-            if (mResults[0] != MarkType.Free && (mResults[0] & mResults[4] & mResults[8]) == mResults[0])
+            else if (mResults[0] != MarkType.Free && (mResults[0] & mResults[4] & mResults[8]) == mResults[0])
             {
                 //End Game
                 if (doFinish)
@@ -318,7 +326,7 @@ namespace Tic_Tac_Toe
                 }
                 result = mResults[0].ToString();
             }
-            if (mResults[6] != MarkType.Free && (mResults[6] & mResults[4] & mResults[2]) == mResults[6])
+            else if (mResults[6] != MarkType.Free && (mResults[6] & mResults[4] & mResults[2]) == mResults[6])
             {
                 //End Game
                 if (doFinish)
@@ -331,7 +339,7 @@ namespace Tic_Tac_Toe
             }
 
             //check for tie
-            if (!mResults.Any(c => c == MarkType.Free))
+            else if (!mResults.Any(c => c == MarkType.Free))
             {
                 //End Game
                 if (doFinish)
@@ -345,6 +353,19 @@ namespace Tic_Tac_Toe
                 }
                 result = "Tie";
             }
+
+            Dictionary<string, SolidColorBrush> Colors = new Dictionary<string, SolidColorBrush>();
+            Colors["Tie"] = Brushes.Gray;
+            Colors["Cross"] = Brushes.Red;
+            Colors["Nought"] = Brushes.Green;
+
+
+            if (doFinish && result != null)
+            {
+                lblResult.Header = result;
+                lblResult.Foreground = Colors[result];
+            }
+
             return result;
         }
 
